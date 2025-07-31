@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICAO DTC Product Roadmap - Gantt Chart</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn.export {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn.export:hover {
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .gantt-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            background: white;
+        }
+
+        .gantt-chart {
+            min-width: 1200px;
+            background: white;
+        }
+
+        .gantt-header {
+            display: grid;
+            grid-template-columns: 300px repeat(24, 50px);
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .gantt-header div {
+            padding: 15px 10px;
+            text-align: center;
+            border-right: 1px solid #3d566e;
+            font-size: 0.9em;
+        }
+
+        .gantt-header div:first-child {
+            text-align: left;
+            font-size: 1.1em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+        }
+
+        .gantt-row {
+            display: grid;
+            grid-template-columns: 300px repeat(24, 50px);
+            border-bottom: 1px solid #ecf0f1;
+            transition: background-color 0.2s ease;
+        }
+
+        .gantt-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        .task-name {
+            padding: 15px;
+            border-right: 2px solid #bdc3c7;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+        }
+
+        .mvp1 .task-name {
+            background: linear-gradient(90deg, #e8f5e8, #f8f9fa);
+            border-left: 4px solid #27ae60;
+        }
+
+        .mvp2 .task-name {
+            background: linear-gradient(90deg, #e8f4fd, #f8f9fa);
+            border-left: 4px solid #3498db;
+        }
+
+        .phase .task-name {
+            background: linear-gradient(90deg, #fff3e0, #f8f9fa);
+            border-left: 4px solid #f39c12;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .gantt-cell {
+            border-right: 1px solid #ecf0f1;
+            position: relative;
+            min-height: 50px;
+        }
+
+        .task-bar {
+            height: 30px;
+            border-radius: 15px;
+            margin: 10px 5px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .task-bar:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .mvp1-bar {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+
+        .mvp2-bar {
+            background: linear-gradient(135deg, #3498db, #5dade2);
+        }
+
+        .phase-bar {
+            background: linear-gradient(135deg, #f39c12, #f7dc6f);
+            color: #2c3e50;
+        }
+
+        .milestone {
+            width: 20px;
+            height: 20px;
+            background: #e74c3c;
+            transform: rotate(45deg);
+            margin: 15px auto;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+        }
+
+        .milestone::after {
+            content: '♦';
+            position: absolute;
+            top: -8px;
+            left: -5px;
+            transform: rotate(-45deg);
+            color: white;
+            font-size: 12px;
+        }
+
+        .legend {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-radius: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 10px;
+        }
+
+        .legend-mvp1 { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        .legend-mvp2 { background: linear-gradient(135deg, #3498db, #5dade2); }
+        .legend-phase { background: linear-gradient(135deg, #f39c12, #f7dc6f); }
+        .legend-milestone { 
+            background: #e74c3c; 
+            transform: rotate(45deg);
+            border-radius: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .legend {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .export-data {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #bdc3c7;
+        }
+
+        .export-data textarea {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+            font-size: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            padding: 10px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ICAO DTC Product Roadmap</h1>
+        <p class="subtitle">Interactive Gantt Chart - 24 Month Development Timeline</p>
+        
+        <div class="controls">
+            <button class="btn" onclick="highlightCriticalPath()">Highlight Critical Path</button>
+            <button class="btn" onclick="toggleMilestones()">Toggle Milestones</button>
+            <button class="btn export" onclick="exportToCSV()">Export to CSV</button>
+            <button class="btn export" onclick="showExcelData()">Show Excel Data</button>
+        </div>
+
+        <div class="gantt-container">
+            <div class="gantt-chart" id="ganttChart">
+                <!-- Chart will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color legend-mvp1"></div>
+                <span>MVP 1.0 - DTC Type 1</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-mvp2"></div>
+                <span>MVP 2.0 - DTC Type 2</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-phase"></div>
+                <span>Major Phases</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-milestone"></div>
+                <span>Milestones</span>
+            </div>
+        </div>
+
+        <div class="export-data" id="exportData">
+            <h3>Excel/CSV Import Data:</h3>
+            <p>Copy this data and paste into Excel or Google Sheets:</p>
+            <textarea id="csvData" readonly></textarea>
+            <br><br>
+            <button class="btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <script>
+        const projectData = [
+            // MVP 1.0 Phase
+            { name: "MVP 1.0 - DTC Type 1", type: "phase", start: 1, duration: 12, mvp: "phase" },
+            { name: "Project Setup & Planning", type: "task", start: 1, duration: 2, mvp: "mvp1" },
+            { name: "RFID/NFC Reading Development", type: "task", start: 2, duration: 3, mvp: "mvp1" },
+            { name: "DTC-VC Generation Engine", type: "task", start: 3, duration: 4, mvp: "mvp1" },
+            { name: "Cryptographic Verification", type: "task", start: 4, duration: 3, mvp: "mvp1" },
+            { name: "Mobile SDK Development", type: "task", start: 5, duration: 4, mvp: "mvp1" },
+            { name: "Border Control Integration", type: "task", start: 7, duration: 3, mvp: "mvp1" },
+            { name: "Security & Compliance Testing", type: "task", start: 9, duration: 2, mvp: "mvp1" },
+            { name: "Pilot Implementation", type: "task", start: 10, duration: 2, mvp: "mvp1" },
+            { name: "MVP 1.0 Release", type: "milestone", start: 12, duration: 0, mvp: "mvp1" },
+            
+            // MVP 2.0 Phase
+            { name: "MVP 2.0 - DTC Type 2", type: "phase", start: 13, duration: 12, mvp: "phase" },
+            { name: "Authority Integration Platform", type: "task", start: 13, duration: 4, mvp: "mvp2" },
+            { name: "Enhanced Physical Component", type: "task", start: 14, duration: 3, mvp: "mvp2" },
+            { name: "Multi-Device Support", type: "task", start: 15, duration: 4, mvp: "mvp2" },
+            { name: "Advanced Verification System", type: "task", start: 16, duration: 3, mvp: "mvp2" },
+            { name: "Interoperability Framework", type: "task", start: 17, duration: 4, mvp: "mvp2" },
+            { name: "Lifecycle Management", type: "task", start: 19, duration: 3, mvp: "mvp2" },
+            { name: "Digital Wallet Integration", type: "task", start: 20, duration: 3, mvp: "mvp2" },
+            { name: "Global Testing & Deployment", type: "task", start: 22, duration: 2, mvp: "mvp2" },
+            { name: "MVP 2.0 Release", type: "milestone", start: 24, duration: 0, mvp: "mvp2" },
+            
+            // Overlapping activities
+            { name: "Documentation & Training", type: "task", start: 8, duration: 16, mvp: "mvp1" },
+            { name: "Quality Assurance", type: "task", start: 6, duration: 18, mvp: "mvp1" },
+            { name: "Stakeholder Engagement", type: "task", start: 1, duration: 24, mvp: "phase" }
+        ];
+
+        function generateGanttChart() {
+            const chart = document.getElementById('ganttChart');
+            
+            // Create header
+            const header = document.createElement('div');
+            header.className = 'gantt-header';
+            
+            const taskHeader = document.createElement('div');
+            taskHeader.textContent = 'Tasks / Milestones';
+            header.appendChild(taskHeader);
+            
+            for (let i = 1; i <= 24; i++) {
+                const monthHeader = document.createElement('div');
+                monthHeader.textContent = `M${i}`;
+                header.appendChild(monthHeader);
+            }
+            
+            chart.appendChild(header);
+            
+            // Create rows
+            projectData.forEach(task => {
+                const row = document.createElement('div');
+                row.className = `gantt-row ${task.mvp}`;
+                
+                const taskName = document.createElement('div');
+                taskName.className = 'task-name';
+                taskName.textContent = task.name;
+                row.appendChild(taskName);
+                
+                for (let i = 1; i <= 24; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'gantt-cell';
+                    
+                    if (task.type === 'milestone' && i === task.start) {
+                        const milestone = document.createElement('div');
+                        milestone.className = 'milestone';
+                        milestone.title = task.name;
+                        cell.appendChild(milestone);
+                    } else if (task.type !== 'milestone' && i >= task.start && i < task.start + task.duration) {
+                        const bar = document.createElement('div');
+                        bar.className = `task-bar ${task.mvp}-bar`;
+                        if (i === task.start) {
+                            bar.textContent = task.duration > 3 ? task.name.substring(0, 8) + '...' : '';
+                        }
+                        bar.title = `${task.name} (${task.duration} months)`;
+                        cell.appendChild(bar);
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                chart.appendChild(row);
+            });
+        }
+
+        function highlightCriticalPath() {
+            const bars = document.querySelectorAll('.task-bar');
+            bars.forEach(bar => {
+                bar.style.opacity = bar.style.opacity === '0.3' ? '1' : '0.3';
+            });
+            
+            // Highlight critical path items
+            const criticalTasks = ['DTC-VC Generation Engine', 'Cryptographic Verification', 'Authority Integration Platform', 'Interoperability Framework'];
+            bars.forEach(bar => {
+                if (criticalTasks.some(task => bar.title.includes(task))) {
+                    bar.style.opacity = '1';
+                    bar.style.boxShadow = '0 0 15px #e74c3c';
+                }
+            });
+        }
+
+        function toggleMilestones() {
+            const milestones = document.querySelectorAll('.milestone');
+            milestones.forEach(milestone => {
+                milestone.style.display = milestone.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+
+        function exportToCSV() {
+            let csv = 'Task Name,Type,Start Month,Duration,MVP,End Month\n';
+            projectData.forEach(task => {
+                const endMonth = task.type === 'milestone' ? task.start : task.start + task.duration - 1;
+                csv += `"${task.name}","${task.type}",${task.start},${task.duration},"${task.mvp}",${endMonth}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'icao_dtc_roadmap.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function showExcelData() {
+            const exportDiv = document.getElementById('exportData');
+            const csvData = document.getElementById('csvData');
+            
+            let data = 'Task Name\tType\tStart Month\tDuration\tMVP\tEnd Month\n';
+            projectData.forEach(task => {
+                const endMonth = task.type === 'milestone' ? task.start : task.start + task.duration - 1;
+                data += `${task.name}\t${task.type}\t${task.start}\t${task.duration}\t${task.mvp}\t${endMonth}\n`;
+            });
+            
+            csvData.value = data;
+            exportDiv.style.display = exportDiv.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function copyToClipboard() {
+            const csvData = document.getElementById('csvData');
+            csvData.select();
+            document.execCommand('copy');
+            alert('Data copied to clipboard! You can now paste it into Excel or Google Sheets.');
+        }
+
+        // Initialize the chart
+        generateGanttChart();
+    </script>
+</body>
+</html>
